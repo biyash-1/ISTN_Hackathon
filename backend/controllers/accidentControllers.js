@@ -26,7 +26,7 @@ const getAccident = async (req, res) => {
     accidents.sort((a, b) => {
       if (a.status === "reported" && b.status !== "reported") return -1;
       if (a.status !== "reported" && b.status === "reported") return 1;
-      return new Date(b.createdAt) - new Date(a.createdAt); // newest first
+      return new Date(b.createdAt) - new Date(a.createdAt); 
     });
 
     res.status(200).json({
