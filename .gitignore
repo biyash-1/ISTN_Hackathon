@@ -27,3 +27,6 @@ build\
 *.class
 *.jar
 *.war
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
