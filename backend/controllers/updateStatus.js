@@ -4,6 +4,7 @@ const Ambulance = require("../model/ambulance.model");
 const PoliceStation = require("../model/PoliceStation.model");
 const Hospital = require("../model/Hospital.model");
 const { getNearestByDriving } = require("../services/locationService");
+const { notifyServices } = require("../services/notificationDispatcher");
 
 exports.updateAccidentStatus = async (req, res, next) => {
   try {
@@ -52,6 +53,26 @@ exports.updateAccidentStatus = async (req, res, next) => {
         nearestAmbulances = await getNearestByDriving({ latitude, longitude }, ambulances);
         nearestPoliceStations = await getNearestByDriving({ latitude, longitude }, policeStations);
         nearestHospitals = await getNearestByDriving({ latitude, longitude }, hospitals);
+
+        await notifyServices({
+      services: nearestAmbulances,
+      serviceType: "Ambulance",
+      accidentLocation: { latitude, longitude },
+    });
+
+    await notifyServices({
+      services: nearestPoliceStations,
+      serviceType: "Police Station",
+      accidentLocation: { latitude, longitude },
+    });
+
+    await notifyServices({
+      services: nearestHospitals,
+      serviceType: "Hospital",
+      accidentLocation: { latitude, longitude },
+    });
+
+        
 
         console.log("Nearest ambulances:", nearestAmbulances);
         console.log("Nearest police stations:", nearestPoliceStations);
