@@ -6,6 +6,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Phone, Check, X } from 'lucide-react';
 import SmallMapCard from '@/components/smallMapCard';
+import { reverseGeocode } from '@/lib/geocode';
+
 interface Accident {
   _id: string;
   description: string;

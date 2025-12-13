@@ -3,6 +3,7 @@ const accidentRouter = express.Router();
 
 const accidentValidation = require("../middlewares/accidentValidation");
 const createAccident = require("../controllers/accidentControllers");
+const getAccident = require("../controllers/accidentControllers")
 
 accidentRouter.post(
   "/report",
@@ -10,4 +11,5 @@ accidentRouter.post(
   createAccident
 );
 
+accidentRouter.get("/getreport",getAccident)
 module.exports = accidentRouter;
