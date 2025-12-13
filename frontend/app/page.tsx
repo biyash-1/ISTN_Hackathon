@@ -1,5 +1,4 @@
 'use client';
-
 import { useState,useEffect, useEffectEvent } from 'react';
 import { Camera, Phone, MapPin, X, Check, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
