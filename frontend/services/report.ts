@@ -39,3 +39,24 @@ export const submitReport = async (data: ReportData) => {
     throw new Error(error.message || 'Something went wrong');
   }
 };
+
+export const getAccident = async () => {
+  try {
+    const response = await fetch(`${API_URL}/accidents/getreport`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to fetch accidents');
+    }
+
+    return await response.json(); // { success, count, data }
+  } catch (error: any) {
+    throw new Error(error.message || 'Something went wrong');
+  }
+};
