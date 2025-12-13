@@ -5,6 +5,7 @@ const accidentValidation = require("../middlewares/accidentValidation");
 const { createAccident, getAccident } = require("../controllers/accidentControllers");
 const updateStatus = require("../controllers/updateStatus");
 
+
 accidentRouter.post(
   "/report",
   accidentValidation,
