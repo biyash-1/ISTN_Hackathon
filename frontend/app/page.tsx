@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import CloudinaryUploadWidget from '@/components/CloudinaryWidget';
+import  GoogleMap  from   "../components/GoogleMap";
 
 const SimpleReportForm = () => {
   const [formData, setFormData] = useState({
@@ -235,24 +236,7 @@ const SimpleReportForm = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="location" className="text-gray-700">
-                      Incident Location
-                    </Label>
-                    <div className="relative">
-                      <Input
-                        id="location"
-                        name="location"
-                        type="text"
-                        value={formData.location}
-                        onChange={handleChange}
-                        placeholder="Enter exact address or landmark"
-                        className="pl-10"
-                        required
-                      />
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    </div>
-                  </div>
+                  
                 </div>
               </CardContent>
             </Card>
@@ -262,33 +246,15 @@ const SimpleReportForm = () => {
           <div className="lg:col-span-1 space-y-6">
             {/* Map Placeholder */}
             <Card className="shadow-sm">
-              <CardHeader>
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 rounded-lg">
-                    <MapPin className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">Incident Location</CardTitle>
-                    <CardDescription>Select location on map</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="aspect-square rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 
-                              flex items-center justify-center border border-dashed border-gray-300">
-                  <div className="text-center p-4">
-                    <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                    <p className="text-gray-600 font-medium">Map Component</p>
-                    <p className="text-gray-500 text-sm mt-1">Will display location here</p>
-                  </div>
-                </div>
-                <div className="mt-4 text-center">
-                  <Button variant="outline" className="w-full">
-                    Open Full Screen Map
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+
+  <CardContent className="pt-6">
+    
+    <div className="mt-4 text-center">
+      <GoogleMap />  
+     
+    </div>
+  </CardContent>
+</Card>
 
             {/* Submit Card */}
             <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-sm">
