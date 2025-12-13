@@ -1,5 +1,6 @@
 // seedAdmin.js
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 const User = require("../model/users.model"); // adjust path
 
 require("dotenv").config({ path: "../.env" }); // if you use .env for MONGO_URI
@@ -14,9 +15,13 @@ const seedAdmin = async () => {
       process.exit(0);
     }
 
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash("admin123", salt);
+
     const adminUser = new User({
       email: "admin@gmail.com",
-      password: "admin123", // you can change this
+      password: hashedPassword, // hashed password
       role: "admin",
     });
 

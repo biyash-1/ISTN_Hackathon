@@ -20,7 +20,10 @@ const createAccident = async (req, res) => {
 
 const getAccident = async (req, res) => {
   try {
-    const accidents = await Accident.find().sort({ createdAt: -1 });
+    const accidents = await Accident.find().sort({
+      status: -1, // non-Accepted first
+      createdAt: -1,
+    });
 
     res.status(200).json({
       success: true,

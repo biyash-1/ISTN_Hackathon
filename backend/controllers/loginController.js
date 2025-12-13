@@ -1,6 +1,7 @@
 // controllers/adminAuthController.js
 const User = require("../model/users.model"); // adjust path
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
 const adminLogin = async (req, res) => {
   try {
@@ -16,7 +17,9 @@ const adminLogin = async (req, res) => {
       return res.status(403).json({ error: "Restricted: Admins only" });
     }
 
-    if (user.password !== password) {
+    // Compare hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(401).json({ error: "Invalid username or password" });
     }
 
@@ -37,11 +40,8 @@ const adminLogin = async (req, res) => {
       .json({ message: "Admin login successful" });
   } catch (error) {
     console.error("Login error:", error); // log full error
-    // Send exact error message to frontend
     res.status(500).json({ error: error.message, stack: error.stack });
   }
 };
-
-module.exports = adminLogin;
 
 module.exports = adminLogin;
