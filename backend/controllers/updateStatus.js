@@ -76,7 +76,7 @@ exports.updateAccidentStatus = async (req, res, next) => {
       }
     }
 
-    // Respond to client
+
     return res.status(200).json({
       success: true,
       message: `Accident ${status.toLowerCase()}`,

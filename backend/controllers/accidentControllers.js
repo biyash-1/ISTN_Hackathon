@@ -20,9 +20,13 @@ const createAccident = async (req, res) => {
 
 const getAccident = async (req, res) => {
   try {
-    const accidents = await Accident.find().sort({
-      status: -1, // non-Accepted first
-      createdAt: -1,
+    let accidents = await Accident.find();
+
+    // Sort so "reported" status comes first
+    accidents.sort((a, b) => {
+      if (a.status === "reported" && b.status !== "reported") return -1;
+      if (a.status !== "reported" && b.status === "reported") return 1;
+      return new Date(b.createdAt) - new Date(a.createdAt); // newest first
     });
 
     res.status(200).json({
@@ -38,6 +42,7 @@ const getAccident = async (req, res) => {
     });
   }
 };
+
 
 module.exports = {
   createAccident,

@@ -24,10 +24,16 @@ const ambulanceSchema = new mongoose.Schema(
       type: String,
       default: "Ambulance Service",
     },
+
+    // New fields for authentication
+    email: { type: String, unique: true, sparse: true }, // sparse allows multiple nulls
+    password: { type: String },
   },
   { timestamps: true }
 );
 
+// Index for geospatial queries
 ambulanceSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model("Ambulance", ambulanceSchema);
+``
