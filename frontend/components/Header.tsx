@@ -1,25 +1,35 @@
 'use client';
-
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { Home, FileText, PlusCircle, BarChart, User, Menu, X, Bell, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuthStore } from '@/app/store/useAuthStore';
-
+import { useRouter } from 'next/navigation';
 const Header = () => {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAuthenticated, logout } = useAuthStore();
   const [openDropdown, setOpenDropdown] = useState(false);
+  const router = useRouter();
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Reports', href: '/reports', icon: FileText },
+    { name: 'Home', href: '/', icon: Home },
+    { name: 'Reports', href: '/admin/dashboard', icon: FileText },
     { name: 'New Report', href: '/new-report', icon: PlusCircle },
     { name: 'Analytics', href: '/analytics', icon: BarChart },
-    { name: 'Profile', href: '/profile', icon: User },
+   
   ];
+
+  const handleLogout = async () => {
+  try {
+    await logout(); // wait for store + API to finish
+    router.push("/login"); // then navigate
+  } catch (err) {
+    console.error("Logout failed", err);
+  }
+};
+
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
@@ -85,7 +95,7 @@ const Header = () => {
                     <div className="absolute right-0 mt-2 w-40 rounded-md bg-white shadow-lg border">
                       <button
                         onClick={() => {
-                          logout();
+                         handleLogout();
                           setOpenDropdown(false);
                         }}
                         className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -142,7 +152,7 @@ const Header = () => {
               ) : (
                 <Button 
                   onClick={() => {
-                    logout();
+                  handleLogout();
                     setIsMenuOpen(false);
                   }}
                   className="w-full bg-red-600 hover:bg-red-700 text-white mt-4 flex items-center justify-center gap-2"
