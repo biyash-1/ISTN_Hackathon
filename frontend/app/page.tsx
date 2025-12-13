@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState,useEffect, useEffectEvent } from 'react';
 import { Camera, Phone, MapPin, X, Check, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import CloudinaryUploadWidget from '@/components/CloudinaryWidget';
 import  GoogleMap  from   "../components/GoogleMap";
+import { submitReport } from '@/services/report';
 
 const SimpleReportForm = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +18,9 @@ const SimpleReportForm = () => {
     location: '',
   });
 
+  useEffect(() =>{
+    getCurrentLocation()
+  },[])
   const [location, setLocation] = useState<{
   lat: number | null;
   lng: number | null;
@@ -76,38 +80,44 @@ const SimpleReportForm = () => {
     setUploadedImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    
-    // Prepare data for submission
-    const submitData = {
-      description: formData.description,
-      contactNumber: formData.contactNumber,
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+  if (location.lat === null || location.lng === null) {
+  alert('Location is required');
+  setIsSubmitting(false);
+  return;
+}
+
+const submitData = {
+  description: formData.description,
+  phoneNumber: formData.contactNumber,
   location: {
-    lat: location.lat,
-    lng: location.lng,
- 
+    latitude: location.lat,
+    longitude: location.lng,
     source: 'gps',
   },
-      images: uploadedImages.map(img => ({
-        url: img.url,
-        publicId: img.publicId,
-        format: img.format
-      }))
-    };
+  images: uploadedImages.map(img => ({
+    url: img.url,
+    public_id: img.publicId,
+    format: img.format,
+  })),
+};
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    console.log('Form submitted:', submitData);
-    
-    setIsSubmitting(false);
+
+  try {
+    const result = await submitReport(submitData);
+    console.log('Report submitted successfully:', result);
     alert('Report submitted successfully!');
     setFormData({ description: '', contactNumber: '', location: '' });
     setUploadedImages([]);
-  };
+  } catch (error: any) {
+    console.error('Failed to submit report:', error.message);
+    alert(`Error: ${error.message}`);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -335,7 +345,7 @@ const SimpleReportForm = () => {
                 {/* Submit Button */}
                 <Button 
                   onClick={handleSubmit}
-                  disabled={isSubmitting || !formData.description || !formData.contactNumber || !formData.location}
+                  disabled={isSubmitting || !formData.description || !formData.contactNumber}
                   className="w-full h-12 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
                 >
                   {isSubmitting ? (
