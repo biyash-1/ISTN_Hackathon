@@ -20,10 +20,14 @@ const createAccident = async (req, res) => {
 
 const getAccident = async (req, res) => {
   try {
+<<<<<<< Updated upstream
     const accidents = await Accident.find().sort({
       status: -1, // non-Accepted first
       createdAt: -1,
     });
+=======
+    const accidents = await Accident.find().sort({ createdAt: -1,status:-1 });
+>>>>>>> Stashed changes
 
     res.status(200).json({
       success: true,

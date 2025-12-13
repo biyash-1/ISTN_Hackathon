@@ -33,6 +33,7 @@ exports.updateAccidentStatus = async (req, res, next) => {
       },
       { new: true }
     );
+    console.log("ipdated accident",updatedAccident)
 
     if (!updatedAccident) {
       return res.status(404).json({
