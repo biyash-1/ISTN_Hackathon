@@ -41,3 +41,21 @@ export const loginDriver = async (data: { email: string; password: string }) => 
   if (!res.ok) throw await res.json();
   return res.json();
 };
+
+export const logoutUser = async () => {
+  try {
+    const response = await fetch(`${API_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include", // VERY IMPORTANT (clears httpOnly cookie)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to logout");
+    }
+    
+    return await response.json();
+  } catch (error: any) {
+    throw new Error(error.message || "Something went wrong");
+  }
+};

@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { logoutUser } from "@/services/auth";
+
 
 interface User {
   email: string;
@@ -11,11 +13,13 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   token: string | null;
-  login: (user: User, token?: string) => void;
-  logout: () => void;
+  login: (user: User, token: string) => void;
+  logout: () => Promise<void>;
 }
 
+
 export const useAuthStore = create<AuthState>()(
+
   persist(
     (set) => ({
       user: null,
@@ -29,12 +33,21 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
         }),
 
-      logout: () =>
-        set({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-        }),
+      logout: async () => {
+        try {
+          await logoutUser(); 
+  
+        } catch (err) {
+          console.error("Logout API failed", err);
+        } finally {
+     
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+          });
+        }
+      },
     }),
     {
       name: "auth-storage",
