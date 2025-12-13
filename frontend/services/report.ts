@@ -21,7 +21,7 @@ interface ReportData {
 
 export const submitReport = async (data: ReportData) => {
   try {
-    const response = await fetch(`${API_URL}/accidents/report`, { // Replace with your real endpoint
+    const response = await fetch(`${API_URL}/accidents/report`, { 
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -60,3 +60,5 @@ export const getAccident = async () => {
     throw new Error(error.message || 'Something went wrong');
   }
 };
+
+

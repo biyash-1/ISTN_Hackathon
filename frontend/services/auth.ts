@@ -7,9 +7,9 @@ interface LoginData {
 
 export const loginUser = async (data: LoginData) => {
   try {
-    const response = await fetch(`${API_URL}/login`, {
+    const response = await fetch(`${API_URL}/auth/admin-login`, {
       method: 'POST',
-      credentials:true,
+      credentials:"include",
       headers: {
         'Content-Type': 'application/json',
       },
@@ -18,6 +18,7 @@ export const loginUser = async (data: LoginData) => {
 
     if (!response.ok) {
       const errorData = await response.json();
+      console.log("err",errorData)
       throw new Error(errorData.message || 'Failed to login');
     }
 

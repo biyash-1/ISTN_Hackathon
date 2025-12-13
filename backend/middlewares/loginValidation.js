@@ -2,7 +2,7 @@ const Joi = require("joi");
 
 const loginValidation = (req, res, next) => {
   const userValidationSchema = Joi.object({
-    username: Joi.string().min(5).max(30).required().messages({
+    email: Joi.string().min(5).max(30).required().messages({
       "string.base": "Username must be a string",
       "string.empty": "Username is required",
       "string.min": "Username must be at least 6 characters",

@@ -8,14 +8,14 @@ const seedAdmin = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
 
-    const existingAdmin = await User.findOne({ username: "admin" });
+    const existingAdmin = await User.findOne({ email: "admin@gmail.com" });
     if (existingAdmin) {
       console.log("Admin user already exists");
       process.exit(0);
     }
 
     const adminUser = new User({
-      username: "admin",
+      email: "admin@gmail.com",
       password: "admin123", // you can change this
       role: "admin",
     });

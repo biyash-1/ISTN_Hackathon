@@ -4,9 +4,10 @@ const jwt = require("jsonwebtoken");
 
 const adminLogin = async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const user = await User.findOne({ username });
+    const { email, password } = req.body;
+    console.log("Login attempt:", req.body); // log request body
 
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ error: "Invalid username or password" });
     }
@@ -20,7 +21,7 @@ const adminLogin = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, username: user.username, role: user.role },
+      { id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN }
     );
@@ -29,15 +30,18 @@ const adminLogin = async (req, res) => {
       .cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
         maxAge: 24 * 60 * 60 * 1000, // 1 day
       })
       .status(200)
       .json({ message: "Admin login successful" });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error" });
+    console.error("Login error:", error); // log full error
+    // Send exact error message to frontend
+    res.status(500).json({ error: error.message, stack: error.stack });
   }
 };
+
+module.exports = adminLogin;
 
 module.exports = adminLogin;
