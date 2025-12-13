@@ -5,6 +5,8 @@ import { logoutUser } from "@/services/auth";
 
 interface User {
   email: string;
+  role: "admin" | "ambulance";
+  ambulanceId?: string;
 }
 
 interface AuthState {
@@ -27,7 +29,7 @@ export const useAuthStore = create<AuthState>()(
       login: (user, token) =>
         set({
           user,
-          token,
+          token: token || null,
           isAuthenticated: true,
         }),
 

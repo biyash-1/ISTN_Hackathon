@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Phone, Check, X } from 'lucide-react';
 import SmallMapCard from '@/components/smallMapCard';
 import { reverseGeocode } from '@/lib/geocode';
-import { updateAccidentStatus, getReportStatus } from '@/services/report';
+import { updateAccidentStatus, getAccident } from '@/services/report';
+
 
 export interface Accident {
   _id: string;

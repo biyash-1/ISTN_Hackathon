@@ -1,3 +1,4 @@
+// backend/index.js - CORRECTED
 const accidentRouter = require("./routes/accidentRoutes");
 const authRouter = require("./routes/authRoutes");
 const databaseConnection = require("./config/dbConfig");
@@ -26,6 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/v1/accidents", accidentRouter);
 app.use("/api/v1/auth", authRouter);
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
+// ✅ REMOVE THIS: app.listen(port, () => { ... })
+// ✅ INSTEAD: Export the app
+
+module.exports = app;  // Add this line at the end

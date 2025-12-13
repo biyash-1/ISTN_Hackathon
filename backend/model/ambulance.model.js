@@ -28,7 +28,14 @@ const ambulanceSchema = new mongoose.Schema(
     // New fields for authentication
     email: { type: String, unique: true, sparse: true }, // sparse allows multiple nulls
     password: { type: String },
+    socketId: { type: String },
+    status: {
+      type: String,
+      enum: ["AVAILABLE", "BUSY", "OFFLINE"],
+      default: "OFFLINE",
+    },
   },
+
   { timestamps: true }
 );
 
@@ -36,4 +43,4 @@ const ambulanceSchema = new mongoose.Schema(
 ambulanceSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model("Ambulance", ambulanceSchema);
-``
+``;
