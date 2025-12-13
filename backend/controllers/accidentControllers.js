@@ -28,9 +28,6 @@ const getAccident = async (req, res) => {
       if (a.status !== "reported" && b.status === "reported") return 1;
       return new Date(b.createdAt) - new Date(a.createdAt); // newest first
     });
-=======
-    const accidents = await Accident.find().sort({ createdAt: -1,status:-1 });
->>>>>>> Stashed changes
 
     res.status(200).json({
       success: true,
