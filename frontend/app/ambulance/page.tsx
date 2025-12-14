@@ -11,9 +11,9 @@ import {
   Bell,
 } from "lucide-react";
 import { getSocket } from "@/services/sockets";
-
 import { Socket } from "socket.io-client";
 import { useAuthStore } from "@/app/store/useAuthStore";
+import HackathonMap from "@/components/GoogleMap";
 
 type EmergencyData = {
   accidentId: string;
@@ -33,6 +33,27 @@ type EmergencyData = {
 
 type ActiveJob = EmergencyData | null;
 
+// Simple Map Component to show driver location
+function SimpleMap({ lat, lng, label }: { lat: number; lng: number; label?: string }) {
+  return (
+    <div className="relative w-full h-full bg-gray-100 rounded-xl overflow-hidden">
+      <iframe
+        width="100%"
+        height="100%"
+        frameBorder="0"
+        style={{ border: 0 }}
+        src={`https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.01},${lat - 0.01},${lng + 0.01},${lat + 0.01}&layer=mapnik&marker=${lat},${lng}`}
+        allowFullScreen
+      />
+      {label && (
+        <div className="absolute top-3 left-3 bg-white px-3 py-2 rounded-lg shadow-md">
+          <p className="text-sm font-semibold text-gray-800">{label}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AmbulanceDriverPage() {
   const { user } = useAuthStore();
   const ambulanceId = user?.ambulanceId;
@@ -40,29 +61,47 @@ export default function AmbulanceDriverPage() {
   const [isOnline, setIsOnline] = useState(true);
   const [activeJob, setActiveJob] = useState<ActiveJob>(null);
   const [hasArrived, setHasArrived] = useState(false);
-  const [requests, setRequests] = useState<EmergencyData[]>([
-    // Remove dummy data or keep as fallback
-    // {
-    //   id: "1",
-    //   accidentId: "1",
-    //   patientName: "John Smith",
-    //   location: "123 Main St, Downtown",
-    //   distance: "2.3 km",
-    //   time: "2 min ago",
-    //   priority: "high",
-    //   lat: 27.7172,
-    //   lng: 85.324,
-    // },
-  ]);
+  const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [requests, setRequests] = useState<EmergencyData[]>([]);
 
-  // Socket.IO setup with better error handling
+  // Get driver's current location
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by your browser");
+      return;
+    }
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        setDriverLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setLocationError(null);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        setLocationError("Unable to retrieve your location");
+        // Fallback to Kathmandu coordinates
+        setDriverLocation({ lat: 27.7172, lng: 85.324 });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
+
+  // Socket.IO setup
   useEffect(() => {
     if (!ambulanceId || !isOnline) return;
 
     console.log("🚑 Connecting socket for ambulance:", ambulanceId);
-
-   const socket = getSocket();
-
+    const socket = getSocket();
 
     // Register ambulance with backend
     socket.emit("ambulance:register", ambulanceId);
@@ -71,17 +110,14 @@ export default function AmbulanceDriverPage() {
     socket.on("emergency:new", (data: EmergencyData) => {
       console.log("🚨 EMERGENCY RECEIVED:", data);
       
-      // Format time if not provided
       const formattedData = {
         ...data,
         time: data.time || "Just now",
-        id: data.accidentId || data.id, // Ensure ID is set
+        id: data.accidentId || data.id,
       };
 
-      // Add notification to requests
       setRequests((prev) => [formattedData, ...prev]);
 
-      // Show browser notification
       if (Notification.permission === "granted") {
         new Notification("🚑 New Emergency Alert", {
           body: `Patient: ${data.patientName}\nLocation: ${data.location}\nDistance: ${data.distance}`,
@@ -114,7 +150,6 @@ export default function AmbulanceDriverPage() {
       console.error("❌ Socket connection error:", error);
     });
 
-    // Cleanup
     return () => {
       console.log("🧹 Cleaning up socket listeners");
       socket.off("emergency:new");
@@ -125,14 +160,12 @@ export default function AmbulanceDriverPage() {
     };
   }, [ambulanceId, isOnline]);
 
-  // Toggle online status
   const handleToggleOnline = () => {
     const newStatus = !isOnline;
     setIsOnline(newStatus);
     
     if (newStatus && ambulanceId) {
-      // Re-register when coming back online
-      const socket = socketClient as Socket;
+      const socket = getSocket();
       socket.emit("ambulance:register", ambulanceId);
     }
   };
@@ -142,8 +175,7 @@ export default function AmbulanceDriverPage() {
     setRequests(requests.filter((r) => r.id !== req.id));
     setHasArrived(false);
     
-    // Notify backend about acceptance (optional)
-    const socket = socketClient as Socket;
+    const socket = getSocket();
     socket.emit("emergency:accept", { 
       accidentId: req.accidentId || req.id,
       ambulanceId: ambulanceId 
@@ -153,8 +185,7 @@ export default function AmbulanceDriverPage() {
   const handleReject = (id: string) => {
     setRequests(requests.filter((r) => r.id !== id));
     
-    // Notify backend about rejection (optional)
-    const socket = socketClient as Socket;
+    const socket = getSocket();
     socket.emit("emergency:reject", { 
       accidentId: id,
       ambulanceId: ambulanceId 
@@ -173,9 +204,8 @@ export default function AmbulanceDriverPage() {
   const handleArrived = () => {
     setHasArrived(true);
     
-    // Notify backend about arrival
     if (activeJob && ambulanceId) {
-      const socket = socketClient as Socket;
+      const socket = getSocket();
       socket.emit("emergency:arrived", { 
         accidentId: activeJob.accidentId || activeJob.id,
         ambulanceId: ambulanceId 
@@ -201,7 +231,6 @@ export default function AmbulanceDriverPage() {
     }
   };
 
-  // Request notification permission on component mount
   useEffect(() => {
     if (Notification.permission === "default") {
       Notification.requestPermission();
@@ -214,7 +243,6 @@ export default function AmbulanceDriverPage() {
       <div className="bg-white shadow-lg sticky top-0 z-20 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            {/* Driver Info */}
             <div className="flex items-center gap-3">
               <div className="bg-blue-600 p-2.5 rounded-xl">
                 <User className="w-6 h-6 text-white" />
@@ -225,9 +253,7 @@ export default function AmbulanceDriverPage() {
               </div>
             </div>
 
-            {/* Status & Notifications */}
             <div className="flex items-center gap-3">
-              {/* Notifications Badge */}
               {requests.length > 0 && (
                 <div className="relative">
                   <Bell className="w-6 h-6 text-blue-600" />
@@ -237,10 +263,9 @@ export default function AmbulanceDriverPage() {
                 </div>
               )}
 
-              {/* Status Toggle */}
               <button
                 onClick={handleToggleOnline}
-                className={`w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-lg transition-all transform active:scale-95 shadow-md ${
+                className={`w-full sm:w-auto p-2 py-2 text-center rounded-xl font-bold  transition-all transform active:scale-95 shadow-md ${
                   isOnline
                     ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700"
                     : "bg-gradient-to-r from-gray-400 to-gray-500 text-white hover:from-gray-500 hover:to-gray-600"
@@ -248,7 +273,7 @@ export default function AmbulanceDriverPage() {
               >
                 <span className="flex items-center justify-center gap-2">
                   <span
-                    className={`w-3 h-3 rounded-full ${
+                    className={`  ${
                       isOnline ? "bg-white animate-pulse" : "bg-gray-200"
                     }`}
                   ></span>
@@ -408,7 +433,7 @@ export default function AmbulanceDriverPage() {
               </div>
             )}
 
-            {/* No requests - Improved empty state */}
+            {/* No requests */}
             {isOnline && requests.length === 0 && !activeJob && (
               <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
                 <div className="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -449,23 +474,45 @@ export default function AmbulanceDriverPage() {
             )}
           </div>
 
-          {/* Right Column - Map */}
+          {/* Right Column - Live Location Map */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-blue-600" />
                 Live Location
               </h2>
-              <div className="relative w-full h-80 lg:h-96 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden shadow-inner">
-                {/* Map SVG - Same as before */}
-                <svg className="w-full h-full" viewBox="0 0 400 400">
-                  {/* ... your existing SVG code ... */}
-                </svg>
+              
+              <div className="relative w-full h-80 lg:h-96 rounded-xl overflow-hidden shadow-inner">
+                {driverLocation ? (
+                  <SimpleMap
+                    lat={driverLocation.lat}
+                    lng={driverLocation.lng}
+                    label="Your Location"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-100 rounded-xl flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600 font-semibold">
+                        {locationError || "Getting your location..."}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
-              {activeJob && (
+
+              {driverLocation && (
                 <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <p className="text-sm text-blue-800 font-semibold">
-                    Distance: {activeJob.distance}
+                    📍 Lat: {driverLocation.lat.toFixed(5)}, Lng: {driverLocation.lng.toFixed(5)}
+                  </p>
+                </div>
+              )}
+
+              {activeJob && (
+                <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-sm text-red-800 font-semibold">
+                    🎯 Distance to emergency: {activeJob.distance}
                   </p>
                 </div>
               )}
